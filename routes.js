@@ -11,13 +11,38 @@ const router = new express.Router();
 
 router.get("/", async function(req, res, next) {
   try {
+
+    // if !req.body, then all customers
+        // if customer not found, error message at the top
+
+    // otherwise, all customers
+    const searchInput = '%' + req.query.name + '%';
+
+    let customers;
+
+    if(!searchInput.includes('undefined')){
+      customers = await Customer.findCustomers(searchInput);
+    } else{
+      customers = await Customer.all();
+    }
+
     // query list of customers
-    const customers = await Customer.all();
     return res.render("customer_list.html", { customers });
   } catch (err) {
     return next(err);
   }
 });
+
+router.get('/topCustomers', async function(req,res,next){
+  try {
+    // query db for top ten customers
+    const customers = await Customer.getTopTen();
+
+    return res.render("top_customers.html", {customers});
+  } catch(e){
+    return next(e);
+  }
+})
 
 /** Form to add a new customer. */
 

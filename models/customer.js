@@ -30,6 +30,9 @@ class Customer {
     return results.rows.map(c => new Customer(c));
   }
 
+  // GROUP BY r.customer_id
+
+
   /** get a customer by ID. */
 
   static async get(id) {
@@ -85,6 +88,42 @@ class Customer {
     this.fullName = fullName;
     return this.fullName;
   }
+
+  static async findCustomers(input){
+    // use SELECT like statement
+
+    const results = await db.query(
+      `SELECT id, 
+         first_name AS "firstName",  
+         last_name AS "lastName", 
+         phone, 
+         notes
+       FROM customers
+       WHERE first_name LIKE $1 OR last_name LIKE $1
+       ORDER BY last_name, first_name`,[input]
+    );
+    return results.rows.map(c => new Customer(c));
+  }
+
+  static async getTopTen(){
+    
+    const results = await db.query(
+      `SELECT c.id, 
+         c.first_name AS "firstName",  
+         c.last_name AS "lastName", 
+         c.phone, 
+         c.notes,
+         count(r.customer_id)
+       FROM customers AS c
+        LEFT JOIN reservations as r
+          ON c.id = r.customer_id 
+       GROUP BY c.id
+       ORDER BY count(r.customer_id) DESC
+       LIMIT 10;`);
+    
+    return results.rows.map(c => new Customer(c));
+  }
 }
+
 
 module.exports = Customer;
